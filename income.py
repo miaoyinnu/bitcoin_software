@@ -1,15 +1,28 @@
 import tkinter as tk
 from tkinter import messagebox
 
+def parse_input(value):
+    """解析输入值，支持k和w单位"""
+    if isinstance(value, str):
+        value = value.strip().lower()  # 清理输入并转小写
+        
+        if value.endswith('k'):
+            return float(value[:-1]) * 1000
+        elif value.endswith('w'):
+            return float(value[:-1]) * 10000
+        else:
+            return float(value)
+    return value
+
 def calculate():
     try:
         # 获取用户输入的值
-        buy_price = float(entry_buy_price.get())
-        sell_price = float(entry_sell_price.get())
+        buy_price = parse_input(entry_buy_price.get())
+        sell_price = parse_input(entry_sell_price.get())
 
-        # 如果杠杆为空，则设置为 1
+        # 获取杠杆倍数，如果为空，则设置为 1
         leverage = float(entry_leverage.get()) if entry_leverage.get() else 1
-        usdt_amount = float(entry_usdt_amount.get())
+        usdt_amount = parse_input(entry_usdt_amount.get())
 
         # 如果杠杆为空，则在界面上显示 1
         if not entry_leverage.get():
@@ -21,14 +34,20 @@ def calculate():
             raise ValueError("所有输入值必须大于零")
 
         # 计算收益率
-        roi = ((sell_price - buy_price) / buy_price) * 100
+        roi = ((sell_price - buy_price) / buy_price) * 100 * leverage
+
+        # 格式化收益率（千位分隔符）
+        formatted_roi = "{:,.2f}".format(roi)  # 保留两位小数
 
         # 计算收益额
-        profit = usdt_amount * (roi / 100) * leverage
+        profit = usdt_amount * (roi / 100)
+
+        # 格式化收益额（千位分隔符）
+        formatted_profit = "{:,.2f}".format(profit)
 
         # 显示结果
-        label_profit.config(text=f"收益额: {profit:.2f} USDT")
-        label_roi.config(text=f"收益率: {roi:.2f}%")
+        label_profit.config(text=f"收益额: {formatted_profit} USDT")
+        label_roi.config(text=f"收益率: {formatted_roi}%")
 
     except ValueError as e:
         # 弹出错误提示框
